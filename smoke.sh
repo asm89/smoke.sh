@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 SMOKE_TMP_DIR=$(mktemp -d)
 
