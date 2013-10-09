@@ -73,7 +73,7 @@ smoke_report
 The minimal smoke test will check if a URL returns with a 200 response code:
 
 ```bash
-smake_url_ok "http://google.com"
+smoke_url_ok "http://google.com"
 ```
 
 ### POST a URL and check the response code
@@ -107,8 +107,8 @@ requested.
 
 ```bash
 smoke_url_prefix "http://example.org"
-smake_url_ok "/"
-smake_url_ok "/login"
+smoke_url_ok "/"
+smoke_url_ok "/login"
 ```
 
 ### CSRF tokens
