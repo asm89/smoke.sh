@@ -187,3 +187,21 @@ smoke_form_ok "/login" postdata/login
     smoke_assert_body "Hi John Doe"
 smoke_report
 ```
+
+API
+---
+
+| function                        | description                                          |
+|---------------------------------|------------------------------------------------------|
+|`smoke_assert_body <string>`     | assert that the body contains `<string>`             |
+|`smoke_assert_code_ok`           | assert that there was a `2xx` response code          |
+|`smoke_csrf <token>`             | set the csrf token to use in POST requests           |
+|`smoke_form <url> <datafile>`    | POST data on url                                     |
+|`smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code |
+|`smoke_report`                   | prints the report and exits                          |
+|`smoke_response_body`            | body of the last response                            |
+|`smoke_response_code`            | code of the last response                            |
+|`smoke_response_headers`         | headers of the last response                         |
+|`smoke_url <url>`                | GET a url                                            |
+|`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code        |
+|`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)    |
