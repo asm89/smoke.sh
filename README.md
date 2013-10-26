@@ -25,6 +25,7 @@ Checking if the Google Search home page works and contains the word "search":
 
 smoke_url_ok "http://google.com/"
     smoke_assert_body "search"
+smoke_report
 ```
 
 Running:
