@@ -15,6 +15,11 @@ SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
 SMOKE_URL_PREFIX=""
 
+SMOKE_USER_AGENT="SmokeTestAgent1.0"
+SMOKE_TIME_CONNECT=0 #Time taken by cUrl to connect to the site ( dependent on your client Server’s bandwidth and Network )
+SMOKE_TIME_TTFP=0 #Time taken to receive first byte after connect ( How quick your Apache is , lower the value the better )
+SMOKE_TIME_TOTAL=0 #The last data is the total time for the site to finish loading. (Largely due to your PHP/ any other server side language performance )
+
 ## "Public API"
 
 smoke_csrf() {
@@ -143,7 +148,11 @@ _curl_get() {
     SMOKE_URL="$SMOKE_URL_PREFIX$URL"
     _smoke_print_url "$SMOKE_URL"
 
-    curl  --cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --dump-header $SMOKE_CURL_HEADERS --silent $SMOKE_URL > $SMOKE_CURL_BODY
+    curl -w "\n%{time_connect}:%{time_starttransfer}:%{time_total}" -A $SMOKE_USER_AGENT --cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --dump-header $SMOKE_CURL_HEADERS --silent $SMOKE_URL > $SMOKE_CURL_BODY
+
+    SMOKE_TIME_CONNECT=`tail -n1 $SMOKE_CURL_BODY | cut -f1 -d:`
+    SMOKE_TIME_TTFP=`tail -n1 $SMOKE_CURL_BODY | cut -f2 -d:`
+    SMOKE_TIME_TOTAL=`tail -n1 $SMOKE_CURL_BODY | cut -f3 -d:`
 
     grep -oE 'HTTP[^ ]+ [0-9]{3}' $SMOKE_CURL_HEADERS | tail -n1 | grep -oE '[0-9]{3}' > $SMOKE_CURL_CODE
 
@@ -158,7 +167,11 @@ _curl_post() {
     SMOKE_URL="$SMOKE_URL_PREFIX$URL"
     _smoke_print_url "$SMOKE_URL"
 
-    curl --cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --data "$FORMDATA_FILE" --dump-header $SMOKE_CURL_HEADERS --silent $SMOKE_URL > $SMOKE_CURL_BODY
+    curl -w "\n%{time_connect}:%{time_starttransfer}:%{time_total}" -A $SMOKE_USER_AGENT --cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --data "$FORMDATA_FILE" --dump-header $SMOKE_CURL_HEADERS --silent $SMOKE_URL > $SMOKE_CURL_BODY
+
+    SMOKE_TIME_CONNECT=`tail -n1 $SMOKE_CURL_BODY | cut -f1 -d:`
+    SMOKE_TIME_TTFP=`tail -n1 $SMOKE_CURL_BODY | cut -f2 -d:`
+    SMOKE_TIME_TOTAL=`tail -n1 $SMOKE_CURL_BODY | cut -f3 -d:`
 
     grep -oE 'HTTP[^ ]+ [0-9]{3}' $SMOKE_CURL_HEADERS | tail -n1 | grep -oE '[0-9]{3}' > $SMOKE_CURL_CODE
 
@@ -197,7 +210,7 @@ _smoke_print_report_success() {
 
 _smoke_print_success() {
     TEXT="$1"
-    echo "    [ ${green}${bold}OK${normal} ] $TEXT"
+    echo "    [ ${green}${bold}OK${normal} ] [$SMOKE_TIME_CONNECT] [$SMOKE_TIME_TTFP] [$SMOKE_TIME_TOTAL] $TEXT "
 }
 
 _smoke_print_url() {
