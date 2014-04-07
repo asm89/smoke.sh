@@ -80,6 +80,17 @@ smoke_url_prefix() {
 
 ## Assertions
 
+smoke_assert_code() {
+    EXPECTED="$1"
+    CODE=$(cat $SMOKE_CURL_CODE)
+
+    if [[ $CODE == $1 ]]; then
+        _smoke_success "$1 Response code"
+    else
+        _smoke_fail "$1 Response code"
+    fi
+}
+
 smoke_assert_code_ok() {
     CODE=$(cat $SMOKE_CURL_CODE)
 

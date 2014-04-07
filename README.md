@@ -195,6 +195,7 @@ API
 | function                        | description                                          |
 |---------------------------------|------------------------------------------------------|
 |`smoke_assert_body <string>`     | assert that the body contains `<string>`             |
+|`smoke_assert_code <code>`       | assert that there was a `<code>` response code       |
 |`smoke_assert_code_ok`           | assert that there was a `2xx` response code          |
 |`smoke_csrf <token>`             | set the csrf token to use in POST requests           |
 |`smoke_form <url> <datafile>`    | POST data on url                                     |
