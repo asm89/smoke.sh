@@ -7,6 +7,7 @@ Features:
 
 - Response body checks
 - Response code checks
+- Response header checks
 - GET/POST on endpoints
 - CSRF tokens
 - Reporting and sane exit codes
@@ -101,6 +102,14 @@ serving the apache default page:
 smoke_assert_body "Password *"
 ```
 
+### Checking if the response headers contain a certain string
+
+By checking response headers, you can make sure to get the correct content type:
+
+```bash
+smoke_assert_headers "Content-Type: text/html; charset=utf-8"
+```
+
 ### Configuring a base URL
 
 It is possible to setup a base URL that is prepended for each URL that is
@@ -184,8 +193,10 @@ smoke_url_ok "/"
     smoke_assert_body "Welcome"
     smoke_assert_body "Login"
     smoke_assert_body "Password"
+    smoke_assert_headers "Content-Type: text/html; charset=utf-8"
 smoke_form_ok "/login" postdata/login
     smoke_assert_body "Hi John Doe"
+    smoke_assert_headers "Content-Type: text/html; charset=utf-8"
 smoke_report
 ```
 
@@ -197,6 +208,7 @@ API
 |`smoke_assert_body <string>`     | assert that the body contains `<string>`             |
 |`smoke_assert_code <code>`       | assert that there was a `<code>` response code       |
 |`smoke_assert_code_ok`           | assert that there was a `2xx` response code          |
+|`smoke_assert_headers <string>`  | assert that the headers contain `<string>`           |
 |`smoke_csrf <token>`             | set the csrf token to use in POST requests           |
 |`smoke_form <url> <datafile>`    | POST data on url                                     |
 |`smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code |
