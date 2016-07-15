@@ -112,6 +112,20 @@ smoke_url_ok "/"
 smoke_url_ok "/login"
 ```
 
+### Overriding the host
+
+If the server requires a certain host header to be set, override the host from the URL with
+
+```
+smoke_host "example.org"
+```
+
+To un-override, set it empty:
+
+```
+smoke_host ""
+```
+
 ### CSRF tokens
 
 Web applications that are protected with CSRF tokens will need to extract a
@@ -179,6 +193,7 @@ _extract_csrf() {
 SMOKE_AFTER_RESPONSE="_extract_csrf"
 
 smoke_url_prefix "$BASE_URL"
+smoke_host "example.org"
 
 smoke_url_ok "/"
     smoke_assert_body "Welcome"
@@ -207,3 +222,4 @@ API
 |`smoke_url <url>`                | GET a url                                            |
 |`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code        |
 |`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)    |
+|`smoke_host <host>`              | set the host header to use                           |
