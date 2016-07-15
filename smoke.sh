@@ -118,6 +118,18 @@ smoke_assert_body() {
     fi
 }
 
+smoke_assert_headers() {
+    STRING="$1"
+
+    smoke_response_headers | grep --quiet "$STRING"
+
+    if [[ $? -eq 0 ]]; then
+        _smoke_success "Headers contain \"$STRING\""
+    else
+        _smoke_fail "Headers do not contain \"$STRING\""
+    fi
+}
+
 ## Smoke "private" functions
 
 _smoke_after_response() {
