@@ -14,6 +14,7 @@ SMOKE_CSRF_FORM_DATA="$SMOKE_TMP_DIR/smoke_csrf_form_data"
 SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
 SMOKE_URL_PREFIX=""
+SMOKE_HEADER_HOST=""
 
 ## "Public API"
 
@@ -76,6 +77,10 @@ smoke_url_ok() {
 
 smoke_url_prefix() {
     SMOKE_URL_PREFIX="$1"
+}
+
+smoke_host() {
+    SMOKE_HEADER_HOST="$1"
 }
 
 ## Assertions
@@ -148,13 +153,22 @@ _smoke_success() {
 }
 
 ## Curl helpers
+_curl() {
+  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --dump-header $SMOKE_CURL_HEADERS --silent)
+  if [[ -n "$SMOKE_HEADER_HOST" ]]
+  then
+    opt+=(-H "Host: $SMOKE_HEADER_HOST")
+  fi
+  curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
+}
+
 _curl_get() {
     URL="$1"
 
     SMOKE_URL="$SMOKE_URL_PREFIX$URL"
     _smoke_print_url "$SMOKE_URL"
 
-    curl  --cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --dump-header $SMOKE_CURL_HEADERS --silent $SMOKE_URL > $SMOKE_CURL_BODY
+    _curl $SMOKE_URL
 
     grep -oE 'HTTP[^ ]+ [0-9]{3}' $SMOKE_CURL_HEADERS | tail -n1 | grep -oE '[0-9]{3}' > $SMOKE_CURL_CODE
 
@@ -169,7 +183,7 @@ _curl_post() {
     SMOKE_URL="$SMOKE_URL_PREFIX$URL"
     _smoke_print_url "$SMOKE_URL"
 
-    curl --cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --data "$FORMDATA_FILE" --dump-header $SMOKE_CURL_HEADERS --silent $SMOKE_URL > $SMOKE_CURL_BODY
+    _curl --data "$FORMDATA_FILE" $SMOKE_URL
 
     grep -oE 'HTTP[^ ]+ [0-9]{3}' $SMOKE_CURL_HEADERS | tail -n1 | grep -oE '[0-9]{3}' > $SMOKE_CURL_CODE
 
