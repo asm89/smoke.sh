@@ -1,6 +1,6 @@
 #!/bin/bash
-SMOKE_TMP_DIR=$(mktemp -d)
-
+# Create a temporary directory that works on both Linux and Darwin
+SMOKE_TMP_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 SMOKE_AFTER_RESPONSE=""
 
 SMOKE_CURL_CODE="$SMOKE_TMP_DIR/smoke_curl_code"
