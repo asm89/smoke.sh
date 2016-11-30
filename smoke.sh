@@ -27,7 +27,7 @@ smoke_form() {
     FORMDATA="$2"
 
     if [[ ! -f "$FORMDATA" ]]; then
-        _smoke_print_fail "No formdata file"
+        _smoke_print_failure "No formdata file"
         _smoke_cleanup
         exit 1
     fi
