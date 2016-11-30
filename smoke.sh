@@ -64,6 +64,13 @@ smoke_response_headers() {
     cat $SMOKE_CURL_HEADERS
 }
 
+smoke_tcp_ok() {
+    URL="$1 $2"
+    _smoke_print_url "$URL"
+    echo EOF | telnet $URL > $SMOKE_CURL_BODY
+    smoke_assert_body "Connected"
+}
+
 smoke_url() {
     URL="$1"
     _curl_get $URL

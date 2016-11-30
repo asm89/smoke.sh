@@ -235,3 +235,4 @@ API
 |`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code        |
 |`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)    |
 |`smoke_host <host>`              | set the host header to use                           |
+|`smoke_tcp_ok <host> <port>`     | open a tcp connection and check for a `Connected` response |
