@@ -193,6 +193,17 @@ smoke_response_body    # raw body (html/json/...)
 smoke_response_headers # list of headers
 ```
 
+### Debugging
+
+In order to debug your requests, call `smoke_debug` before calling `smoke_url`:
+
+```bash
+smoke_debug
+smoke_url_ok "http://google.com"
+```
+
+You can turn off debugging by calling `smoke_no_debug`
+
 Advanced example
 ----------------
 

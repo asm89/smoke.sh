@@ -8,6 +8,7 @@ SMOKE_CURL_HEADERS="$SMOKE_TMP_DIR/smoke_curl_headers"
 SMOKE_CURL_BODY="$SMOKE_TMP_DIR/smoke_curl_body"
 SMOKE_CURL_COOKIE_JAR="$SMOKE_TMP_DIR/smoke_curl_cookie_jar"
 SMOKE_CURL_FOLLOW="--location"
+SMOKE_CURL_VERBOSE="--silent"
 
 SMOKE_CSRF_TOKEN=""
 SMOKE_CSRF_FORM_DATA="$SMOKE_TMP_DIR/smoke_csrf_form_data"
@@ -23,6 +24,13 @@ smoke_csrf() {
     SMOKE_CSRF_TOKEN="$1"
 }
 
+smoke_debug() {
+    SMOKE_CURL_VERBOSE="--verbose"
+}
+
+smoke_no_debug() {
+    SMOKE_CURL_VERBOSE="--silent"
+}
 
 smoke_follow() {
     SMOKE_CURL_FOLLOW="--location"
@@ -183,7 +191,7 @@ _smoke_success() {
 
 ## Curl helpers
 _curl() {
-  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR $SMOKE_CURL_FOLLOW --dump-header $SMOKE_CURL_HEADERS --silent)
+  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR $SMOKE_CURL_FOLLOW --dump-header $SMOKE_CURL_HEADERS $SMOKE_CURL_VERBOSE)
   if [[ -n "$SMOKE_HEADER_HOST" ]]
   then
     opt+=(-H "Host: $SMOKE_HEADER_HOST")
