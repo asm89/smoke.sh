@@ -9,6 +9,7 @@ SMOKE_CURL_BODY="$SMOKE_TMP_DIR/smoke_curl_body"
 SMOKE_CURL_COOKIE_JAR="$SMOKE_TMP_DIR/smoke_curl_cookie_jar"
 SMOKE_CURL_FOLLOW="--location"
 SMOKE_CURL_VERBOSE="--silent"
+SMOKE_CURL_CREDENTIALS=""
 
 SMOKE_CSRF_TOKEN=""
 SMOKE_CSRF_FORM_DATA="$SMOKE_TMP_DIR/smoke_csrf_form_data"
@@ -38,6 +39,21 @@ smoke_follow() {
 
 smoke_no_follow() {
     SMOKE_CURL_FOLLOW=""
+}
+
+smoke_credentials() {
+    USERNAME="$1"
+    local PASSWORD="$2"
+
+    if [[ -z "${USERNAME// /}" ]]; then
+        _smoke_print_failure "Username is unset or empty"
+        _smoke_cleanup
+        exit 1
+    fi
+    SMOKE_CURL_CREDENTIALS="-u $USERNAME"
+    if [[ -n "$PASSWORD" ]]; then
+        SMOKE_CURL_CREDENTIALS="$SMOKE_CURL_CREDENTIALS:$PASSWORD"
+    fi
 }
 
 smoke_form() {
@@ -191,9 +207,8 @@ _smoke_success() {
 
 ## Curl helpers
 _curl() {
-  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR $SMOKE_CURL_FOLLOW --dump-header $SMOKE_CURL_HEADERS $SMOKE_CURL_VERBOSE)
-  if [[ -n "$SMOKE_HEADER_HOST" ]]
-  then
+  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR $SMOKE_CURL_FOLLOW --dump-header $SMOKE_CURL_HEADERS $SMOKE_CURL_VERBOSE $SMOKE_CURL_CREDENTIALS)
+  if [[ -n "$SMOKE_HEADER_HOST" ]]; then
     opt+=(-H "Host: $SMOKE_HEADER_HOST")
   fi
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
@@ -264,5 +279,9 @@ _smoke_print_success() {
 
 _smoke_print_url() {
     TEXT="$1"
-    echo "> $TEXT"
+    local url_to_print="> $TEXT"
+    if [[ -n "${USERNAME}" ]]; then
+        url_to_print="$url_to_print (authenticate as ${USERNAME})"
+    fi
+    echo "$url_to_print"
 }
