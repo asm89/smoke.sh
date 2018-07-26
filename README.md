@@ -144,13 +144,13 @@ smoke_url_ok "/login"
 
 If the server requires a certain host header to be set, override the host from the URL with
 
-```
+```bash
 smoke_host "example.org"
 ```
 
 To un-override, set it empty:
 
-```
+```bash
 smoke_host ""
 ```
 
@@ -191,6 +191,22 @@ To get data from the last response, three helper functions are available:
 smoke_response_code    # e.g. 200, 201, 400...
 smoke_response_body    # raw body (html/json/...)
 smoke_response_headers # list of headers
+```
+
+### Authentication
+
+If the server requires an authentication (for example : HTTP Basic authentication), you must call `smoke_credentials` before calling `smoke_url`.
+If you simply specify the user name, you will be prompted for a password. 
+
+```bash
+smoke_credentials "username" "password"
+smoke_url "http://secured-website.com"
+```
+
+To un-set credentials, call `smoke_no_credentials` :
+
+```bash
+smoke_no_credentials
 ```
 
 ### Debugging

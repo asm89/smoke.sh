@@ -56,6 +56,10 @@ smoke_credentials() {
     fi
 }
 
+smoke_no_credentials() {
+    SMOKE_CURL_CREDENTIALS=""
+}
+
 smoke_form() {
     URL="$1"
     FORMDATA="$2"
@@ -130,10 +134,10 @@ smoke_assert_code() {
     EXPECTED="$1"
     CODE=$(cat $SMOKE_CURL_CODE)
 
-    if [[ $CODE == $1 ]]; then
-        _smoke_success "$1 Response code"
+    if [[ $CODE == $EXPECTED ]]; then
+        _smoke_success "$EXPECTED Response code"
     else
-        _smoke_fail "$1 Response code"
+        _smoke_fail "$EXPECTED Response code ($CODE)"
     fi
 }
 
@@ -143,7 +147,7 @@ smoke_assert_code_ok() {
     if [[ $CODE == 2* ]]; then
         _smoke_success "2xx Response code"
     else
-        _smoke_fail "2xx Response code"
+        _smoke_fail "2xx Response code ($CODE)"
     fi
 }
 
