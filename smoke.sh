@@ -43,7 +43,7 @@ smoke_no_follow() {
 
 smoke_credentials() {
     USERNAME="$1"
-    local PASSWORD="$2"
+    PASSWORD="$2"
 
     if [[ -z "${USERNAME// /}" ]]; then
         _smoke_print_failure "Username is unset or empty"
@@ -57,6 +57,8 @@ smoke_credentials() {
 }
 
 smoke_no_credentials() {
+    USERNAME=""
+    PASSWORD=""
     SMOKE_CURL_CREDENTIALS=""
 }
 
@@ -293,7 +295,7 @@ _smoke_print_success() {
 _smoke_print_url() {
     TEXT="$1"
     local url_to_print="> $TEXT"
-    if [[ -n "${USERNAME}" ]]; then
+    if [[ -n "${SMOKE_CURL_CREDENTIALS}" ]]; then
         url_to_print="$url_to_print (authenticate as ${USERNAME})"
     fi
     echo "$url_to_print"
