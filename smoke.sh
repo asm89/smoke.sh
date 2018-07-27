@@ -139,7 +139,7 @@ smoke_assert_code() {
     if [[ $CODE == $EXPECTED ]]; then
         _smoke_success "$EXPECTED Response code"
     else
-        _smoke_fail "$EXPECTED Response code ($CODE)"
+        _smoke_fail "$EXPECTED Response code (${CODE:-No response})"
     fi
 }
 
@@ -149,7 +149,7 @@ smoke_assert_code_ok() {
     if [[ $CODE == 2* ]]; then
         _smoke_success "2xx Response code"
     else
-        _smoke_fail "2xx Response code ($CODE)"
+        _smoke_fail "2xx Response code (${CODE:-No response})"
     fi
 }
 
