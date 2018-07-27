@@ -132,7 +132,7 @@ smoke_host() {
 
 smoke_assert_code() {
     EXPECTED="$1"
-    CODE=$(cat $SMOKE_CURL_CODE)
+    CODE=$(smoke_response_code)
 
     if [[ $CODE == $EXPECTED ]]; then
         _smoke_success "$EXPECTED Response code"
@@ -142,12 +142,21 @@ smoke_assert_code() {
 }
 
 smoke_assert_code_ok() {
-    CODE=$(cat $SMOKE_CURL_CODE)
+    CODE=$(smoke_response_code)
 
     if [[ $CODE == 2* ]]; then
         _smoke_success "2xx Response code"
     else
         _smoke_fail "2xx Response code ($CODE)"
+    fi
+}
+
+smoke_assert_no_response() {
+    CODE=$(smoke_response_code)
+    if [[ -z "${CODE// }" ]]; then
+        _smoke_success "No response from server"
+    else
+        _smoke_fail "Got a response from server"
     fi
 }
 

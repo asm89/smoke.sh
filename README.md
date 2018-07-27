@@ -129,6 +129,15 @@ By checking response headers, you can make sure to get the correct content type:
 smoke_assert_headers "Content-Type: text/html; charset=utf-8"
 ```
 
+### Checking the server is not responding
+
+In order to check a server is not responding, you can use `smoke_assert_no_response` after calling `smoke_url`:
+
+```bash
+smoke_url "http://myserver.com:5000/"
+smoke_assert_no_response
+```
+
 ### Configuring a base URL
 
 It is possible to setup a base URL that is prepended for each URL that is
@@ -270,6 +279,7 @@ API
 |`smoke_assert_code <code>`               | assert that there was a `<code>` response code                                                      |
 |`smoke_assert_code_ok`                   | assert that there was a `2xx` response code                                                         |
 |`smoke_assert_headers <string>`          | assert that the headers contain `<string>`                                                          |
+|`smoke_assert_no_response`               | assert that the server is not responding                                                            |
 |`smoke_credentials <string> [<string>]`  | set the credentials to use : login (and password). If password is not set, it will be prompted      |
 |`smoke_csrf <token>`                     | set the csrf token to use in POST requests                                                          |
 |`smoke_form <url> <datafile>`            | POST data on url                                                                                    |
