@@ -292,4 +292,6 @@ API
 |`smoke_url_ok <url>`                     | GET a url and check for a `2xx` response code                                                       |
 |`smoke_url_prefix <prefix>`              | set the prefix to use for every url (e.g. domain)                                                   |
 |`smoke_host <host>`                      | set the host header to use                                                                          |
+|`smoke_custom_header <string> <string>`  | add a custom header with the first string as the key and the second as the value                    |
+|`smoke_no_custom_headers`                | remove all custom headers                                                                           |
 |`smoke_tcp_ok <host> <port>`             | open a tcp connection and check for a `Connected` response                                          |

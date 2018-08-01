@@ -18,8 +18,14 @@ SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
 SMOKE_URL_PREFIX=""
 SMOKE_HEADER_HOST=""
+SMOKE_CUSTOM_HEADERS=()
 
 ## "Public API"
+
+# Configuration
+smoke_url_prefix() {
+    SMOKE_URL_PREFIX="$1"
+}
 
 smoke_csrf() {
     SMOKE_CSRF_TOKEN="$1"
@@ -62,6 +68,19 @@ smoke_no_credentials() {
     SMOKE_CURL_CREDENTIALS=""
 }
 
+smoke_host() {
+    SMOKE_HEADER_HOST="$1"
+}
+
+smoke_custom_header() {
+    SMOKE_CUSTOM_HEADERS+=("$1: $2")
+}
+
+smoke_no_custom_headers() {
+    SMOKE_CUSTOM_HEADERS=()
+}
+
+# Request
 smoke_form() {
     URL="$1"
     FORMDATA="$2"
@@ -83,15 +102,18 @@ smoke_form_ok() {
     smoke_assert_code_ok
 }
 
-smoke_report() {
-    _smoke_cleanup
-    if [[ $SMOKE_TESTS_FAILED -ne 0 ]]; then
-        _smoke_print_report_failure "FAIL ($SMOKE_TESTS_FAILED/$SMOKE_TESTS_RUN)"
-        exit 1
-    fi
-    _smoke_print_report_success "OK ($SMOKE_TESTS_RUN/$SMOKE_TESTS_RUN)"
+smoke_url() {
+    URL="$1"
+    _curl_get $URL
 }
 
+smoke_url_ok() {
+    URL="$1"
+    smoke_url "$URL"
+    smoke_assert_code_ok
+}
+
+# Response
 smoke_response_code() {
     cat $SMOKE_CURL_CODE
 }
@@ -111,24 +133,16 @@ smoke_tcp_ok() {
     smoke_assert_body "Connected"
 }
 
-smoke_url() {
-    URL="$1"
-    _curl_get $URL
+# Report
+smoke_report() {
+    _smoke_cleanup
+    if [[ $SMOKE_TESTS_FAILED -ne 0 ]]; then
+        _smoke_print_report_failure "FAIL ($SMOKE_TESTS_FAILED/$SMOKE_TESTS_RUN)"
+        exit 1
+    fi
+    _smoke_print_report_success "OK ($SMOKE_TESTS_RUN/$SMOKE_TESTS_RUN)"
 }
 
-smoke_url_ok() {
-    URL="$1"
-    smoke_url "$URL"
-    smoke_assert_code_ok
-}
-
-smoke_url_prefix() {
-    SMOKE_URL_PREFIX="$1"
-}
-
-smoke_host() {
-    SMOKE_HEADER_HOST="$1"
-}
 
 ## Assertions
 
@@ -226,6 +240,9 @@ _curl() {
   if [[ -n "$SMOKE_HEADER_HOST" ]]; then
     opt+=(-H "Host: $SMOKE_HEADER_HOST")
   fi
+  for header in "${SMOKE_CUSTOM_HEADERS[@]}"; do
+    opt+=(-H "$header")
+  done
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
 }
 
