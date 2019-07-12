@@ -149,8 +149,8 @@ _smoke_cleanup() {
 
 _smoke_fail() {
     REASON="$1"
-    (( SMOKE_TESTS_FAILED++ ))
-    (( SMOKE_TESTS_RUN++ ))
+    (( ++SMOKE_TESTS_FAILED ))
+    (( ++SMOKE_TESTS_RUN ))
     _smoke_print_failure "$REASON"
 }
 
@@ -168,7 +168,7 @@ _smoke_prepare_formdata() {
 _smoke_success() {
     REASON="$1"
     _smoke_print_success "$REASON"
-    (( SMOKE_TESTS_RUN++ ))
+    (( ++SMOKE_TESTS_RUN ))
 }
 
 ## Curl helpers
