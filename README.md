@@ -78,6 +78,25 @@ The minimal smoke test will check if a URL returns with a 200 response code:
 smoke_url_ok "http://google.com"
 ```
 
+It is also possible to check for other response codes explicitly:
+
+```bash
+smoke_url "http://google.com/doesnotexist"
+smoke_assert_code 404
+```
+
+### GET a URL and check for redirects
+
+In order to check for redirects, you must call `smoke_no_follow` before calling `smoke_url`:
+
+```bash
+smoke_no_follow
+smoke_url "http://google.com"
+smoke_assert_code 302
+```
+
+You can follow redirects again by calling `smoke_follow`
+
 ### POST a URL and check the response code
 
 A more advanced smoke test will POST data to a URL. Such a test can be used to
@@ -173,6 +192,17 @@ smoke_response_code    # e.g. 200, 201, 400...
 smoke_response_body    # raw body (html/json/...)
 smoke_response_headers # list of headers
 ```
+
+### Debugging
+
+In order to debug your requests, call `smoke_debug` before calling `smoke_url`:
+
+```bash
+smoke_debug
+smoke_url_ok "http://google.com"
+```
+
+You can turn off debugging by calling `smoke_no_debug`
 
 Advanced example
 ----------------
