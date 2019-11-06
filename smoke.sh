@@ -15,11 +15,17 @@ SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
 SMOKE_URL_PREFIX=""
 SMOKE_HEADERS=()
+SMOKE_HEADER_HOST=""
+SMOKE_ORIGIN=""
 
 ## "Public API"
 
 smoke_csrf() {
     SMOKE_CSRF_TOKEN="$1"
+}
+
+smoke_origin() {
+    SMOKE_ORIGIN="$1"
 }
 
 smoke_form() {
@@ -66,7 +72,7 @@ smoke_response_headers() {
 
 smoke_tcp_ok() {
     URL="$1 $2"
-    _smoke_print_url "$URL"
+    _smoke_print_url "TCP" "$URL"
     echo EOF | telnet $URL > $SMOKE_CURL_BODY
     smoke_assert_body "Connected"
 }
@@ -74,6 +80,11 @@ smoke_tcp_ok() {
 smoke_url() {
     URL="$1"
     _curl_get $URL
+}
+
+smoke_url_cors() {
+    URL="$1"
+    _curl_options $URL
 }
 
 smoke_url_ok() {
@@ -189,7 +200,10 @@ _curl() {
         opt+=(-H "$header")
     done
   fi
-
+  if [[ -n "$SMOKE_ORIGIN" ]]
+  then
+    opt+=(-H "Origin: $SMOKE_ORIGIN")
+  fi
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
 }
 
@@ -197,9 +211,22 @@ _curl_get() {
     URL="$1"
 
     SMOKE_URL="$SMOKE_URL_PREFIX$URL"
-    _smoke_print_url "$SMOKE_URL"
+    _smoke_print_url "GET" "$SMOKE_URL"
 
     _curl $SMOKE_URL
+
+    grep -oE 'HTTP[^ ]+ [0-9]{3}' $SMOKE_CURL_HEADERS | tail -n1 | grep -oE '[0-9]{3}' > $SMOKE_CURL_CODE
+
+    $SMOKE_AFTER_RESPONSE
+}
+
+_curl_options() {
+    URL="$1"
+
+    SMOKE_URL="$SMOKE_URL_PREFIX$URL"
+    _smoke_print_url "OPTIONS" "$SMOKE_URL"
+
+    _curl -X OPTIONS $SMOKE_URL
 
     grep -oE 'HTTP[^ ]+ [0-9]{3}' $SMOKE_CURL_HEADERS | tail -n1 | grep -oE '[0-9]{3}' > $SMOKE_CURL_CODE
 
@@ -212,7 +239,7 @@ _curl_post() {
     FORMDATA_FILE="@"$(_smoke_prepare_formdata $FORMDATA)
 
     SMOKE_URL="$SMOKE_URL_PREFIX$URL"
-    _smoke_print_url "$SMOKE_URL"
+    _smoke_print_url "POST" "$SMOKE_URL"
 
     _curl --data "$FORMDATA_FILE" $SMOKE_URL
 
@@ -257,6 +284,7 @@ _smoke_print_success() {
 }
 
 _smoke_print_url() {
-    TEXT="$1"
-    echo "> $TEXT"
+    VERB="$1"
+    URL="$2"
+    echo "> ${VERB} ${bold}${URL}${normal}"
 }
