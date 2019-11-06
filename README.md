@@ -8,7 +8,8 @@ Features:
 - Response body checks
 - Response code checks
 - Response header checks
-- GET/POST on endpoints
+- GET/POST/OPTIONS on endpoints
+- ORIGIN support for testing CORS responses
 - CSRF tokens
 - Reporting and sane exit codes
 
@@ -33,7 +34,7 @@ Running:
 
 ```bash
 $ ./smoke-google
-> http://google.com/
+> GET http://google.com/
     [ OK ] 2xx Response code
     [ OK ] Body contains "search"
 OK (2/2)
@@ -135,6 +136,22 @@ To un-override, set it empty:
 smoke_host ""
 ```
 
+### Checking CORS is enabled for a certain Origin
+
+First of all, set the origin header with:
+
+```
+smoke_origin "https://acme.corp"
+```
+
+Then test for CORS headers using:
+
+```
+smoke_url_cors "https://api.com/endpoint"
+    smoke_assert_headers "Access-Control-Allow-Credentials: true"
+    smoke_assert_headers "Access-Control-Allow-Origin: https://acme.corp"
+```
+
 ### CSRF tokens
 
 Web applications that are protected with CSRF tokens will need to extract a
@@ -227,11 +244,13 @@ API
 |`smoke_csrf <token>`             | set the csrf token to use in POST requests           |
 |`smoke_form <url> <datafile>`    | POST data on url                                     |
 |`smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code |
+|`smoke_origin <origin>`          | sets the `Origin` header                             |
 |`smoke_report`                   | prints the report and exits                          |
 |`smoke_response_body`            | body of the last response                            |
 |`smoke_response_code`            | code of the last response                            |
 |`smoke_response_headers`         | headers of the last response                         |
 |`smoke_url <url>`                | GET a url                                            |
+|`smoke_url_cors <url>`           | Check CORS via OPTIONS verb                          |
 |`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code        |
 |`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)    |
 |`smoke_host <host>`              | set the host header to use                           |
