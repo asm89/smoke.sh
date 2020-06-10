@@ -135,6 +135,17 @@ To un-override, set it empty:
 smoke_host ""
 ```
 
+### Overriding request headers
+
+It's possible to set additional request headers, like `X-Forwarded-Proto` for local tests.
+
+```
+smoke_header "X-Forwarded-Host: orginal.example.org"
+smoke_header "X-Forwarded-Proto: https"
+```
+
+Existing custom headers can be unset with `remove_smoke_headers`.
+
 ### CSRF tokens
 
 Web applications that are protected with CSRF tokens will need to extract a
@@ -235,4 +246,5 @@ API
 |`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code        |
 |`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)    |
 |`smoke_host <host>`              | set the host header to use                           |
+|`smoke_header <header>`          | set additional request header                        |
 |`smoke_tcp_ok <host> <port>`     | open a tcp connection and check for a `Connected` response |

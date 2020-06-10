@@ -14,7 +14,7 @@ SMOKE_CSRF_FORM_DATA="$SMOKE_TMP_DIR/smoke_csrf_form_data"
 SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
 SMOKE_URL_PREFIX=""
-SMOKE_HEADER_HOST=""
+SMOKE_HEADERS=()
 
 ## "Public API"
 
@@ -86,8 +86,16 @@ smoke_url_prefix() {
     SMOKE_URL_PREFIX="$1"
 }
 
+smoke_header() {
+    SMOKE_HEADERS+=("$1")
+}
+
 smoke_host() {
-    SMOKE_HEADER_HOST="$1"
+    smoke_header "Host: $1"
+}
+
+remove_smoke_headers() {
+    unset SMOKE_HEADERS
 }
 
 ## Assertions
@@ -174,10 +182,14 @@ _smoke_success() {
 ## Curl helpers
 _curl() {
   local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --dump-header $SMOKE_CURL_HEADERS --silent)
-  if [[ -n "$SMOKE_HEADER_HOST" ]]
-  then
-    opt+=(-H "Host: $SMOKE_HEADER_HOST")
+
+  if (( ${#SMOKE_HEADERS[@]} )); then
+    for header in "${SMOKE_HEADERS[@]}"
+    do
+        opt+=(-H "$header")
+    done
   fi
+
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
 }
 
