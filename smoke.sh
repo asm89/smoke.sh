@@ -18,6 +18,9 @@ SMOKE_HEADERS=()
 
 SMOKE_ORIGIN=""
 
+SMOKE_NO_PROXY=""
+SMOKE_PROXY=""
+
 SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
 SMOKE_URL_PREFIX=""
@@ -72,6 +75,15 @@ smoke_no_credentials() {
 
 smoke_origin() {
     SMOKE_ORIGIN="$1"
+}
+
+smoke_proxy() {
+    SMOKE_PROXY="--proxy '$1'"
+}
+
+smoke_no_proxy() {
+    local noproxy="${1-*}"
+    SMOKE_NO_PROXY="--noproxy '$noproxy'"
 }
 
 # Request
@@ -250,7 +262,7 @@ _smoke_prepare_formdata() {
 ## Curl helpers
 _curl() {
   # Prepare request
-  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR $SMOKE_CURL_FOLLOW --dump-header $SMOKE_CURL_HEADERS $SMOKE_CURL_VERBOSE $SMOKE_CURL_CREDENTIALS)
+  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR $SMOKE_CURL_FOLLOW --dump-header $SMOKE_CURL_HEADERS $SMOKE_CURL_VERBOSE $SMOKE_CURL_CREDENTIALS $SMOKE_PROXY $SMOKE_NO_PROXY)
   
   # Add headers
   if (( ${#SMOKE_HEADERS[@]} )); then

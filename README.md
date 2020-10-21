@@ -312,7 +312,9 @@ API
 |`smoke_csrf <token>`                     | set the csrf token to use in POST requests                                                     |
 |`smoke_form <url> <datafile>`            | POST data on url                                                                               |
 |`smoke_form_ok <url> <datafile>`         | POST data on url and check for a `2xx` response code                                           |
-|`smoke_origin <origin>`                  | sets the `Origin` header                                                                       |
+|`smoke_origin <origin>`                  | set the `Origin` header                                                                        |
+|`smoke_proxy <proxy>`                    | set the HTTP proxy to use [protocol://][user:password@]proxyhost[:port]                        |
+|`smoke_no_proxy [<no-proxy-list>]`       | Comma-separated  list of hosts which do not use a proxy                                        |
 |`smoke_report`                           | prints the report and exits                                                                    |
 |`smoke_response_body`                    | body of the last response                                                                      |
 |`smoke_response_code`                    | code of the last response                                                                      |
