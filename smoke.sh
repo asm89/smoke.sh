@@ -17,8 +17,7 @@ SMOKE_CSRF_FORM_DATA="$SMOKE_TMP_DIR/smoke_csrf_form_data"
 SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
 SMOKE_URL_PREFIX=""
-SMOKE_HEADER_HOST=""
-SMOKE_CUSTOM_HEADERS=()
+SMOKE_HEADERS=()
 
 ## "Public API"
 
@@ -66,18 +65,6 @@ smoke_no_credentials() {
     USERNAME=""
     PASSWORD=""
     SMOKE_CURL_CREDENTIALS=""
-}
-
-smoke_host() {
-    SMOKE_HEADER_HOST="$1"
-}
-
-smoke_custom_header() {
-    SMOKE_CUSTOM_HEADERS+=("$1: $2")
-}
-
-smoke_no_custom_headers() {
-    SMOKE_CUSTOM_HEADERS=()
 }
 
 # Request
@@ -143,6 +130,17 @@ smoke_report() {
     _smoke_print_report_success "OK ($SMOKE_TESTS_RUN/$SMOKE_TESTS_RUN)"
 }
 
+smoke_header() {
+    SMOKE_HEADERS+=("$1")
+}
+
+smoke_host() {
+    smoke_header "Host: $1"
+}
+
+remove_smoke_headers() {
+    unset SMOKE_HEADERS
+}
 
 ## Assertions
 
@@ -212,8 +210,8 @@ _smoke_cleanup() {
 
 _smoke_fail() {
     REASON="$1"
-    (( SMOKE_TESTS_FAILED++ ))
-    (( SMOKE_TESTS_RUN++ ))
+    (( ++SMOKE_TESTS_FAILED ))
+    (( ++SMOKE_TESTS_RUN ))
     _smoke_print_failure "$REASON"
 }
 
@@ -231,18 +229,19 @@ _smoke_prepare_formdata() {
 _smoke_success() {
     REASON="$1"
     _smoke_print_success "$REASON"
-    (( SMOKE_TESTS_RUN++ ))
+    (( ++SMOKE_TESTS_RUN ))
 }
 
 ## Curl helpers
 _curl() {
   local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR $SMOKE_CURL_FOLLOW --dump-header $SMOKE_CURL_HEADERS $SMOKE_CURL_VERBOSE $SMOKE_CURL_CREDENTIALS)
-  if [[ -n "$SMOKE_HEADER_HOST" ]]; then
-    opt+=(-H "Host: $SMOKE_HEADER_HOST")
+  if (( ${#SMOKE_HEADERS[@]} )); then
+    for header in "${SMOKE_HEADERS[@]}"
+    do
+        opt+=(-H "$header")
+    done
   fi
-  for header in "${SMOKE_CUSTOM_HEADERS[@]}"; do
-    opt+=(-H "$header")
-  done
+
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
 }
 
