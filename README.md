@@ -8,7 +8,8 @@ Features:
 - Response body checks
 - Response code checks
 - Response header checks
-- GET/POST on endpoints
+- GET/POST/OPTIONS on endpoints
+- ORIGIN support for testing CORS responses
 - CSRF tokens
 - Reporting and sane exit codes
 
@@ -33,7 +34,7 @@ Running:
 
 ```bash
 $ ./smoke-google
-> http://google.com/
+> GET http://google.com/
     [ OK ] 2xx Response code
     [ OK ] Body contains "search"
 OK (2/2)
@@ -78,6 +79,25 @@ The minimal smoke test will check if a URL returns with a 200 response code:
 smoke_url_ok "http://google.com"
 ```
 
+It is also possible to check for other response codes explicitly:
+
+```bash
+smoke_url "http://google.com/doesnotexist"
+smoke_assert_code 404
+```
+
+### GET a URL and check for redirects
+
+In order to check for redirects, you must call `smoke_no_follow` before calling `smoke_url`:
+
+```bash
+smoke_no_follow
+smoke_url "http://google.com"
+smoke_assert_code 302
+```
+
+You can follow redirects again by calling `smoke_follow`
+
 ### POST a URL and check the response code
 
 A more advanced smoke test will POST data to a URL. Such a test can be used to
@@ -110,6 +130,15 @@ By checking response headers, you can make sure to get the correct content type:
 smoke_assert_headers "Content-Type: text/html; charset=utf-8"
 ```
 
+### Checking the server is not responding
+
+In order to check a server is not responding, you can use `smoke_assert_no_response` after calling `smoke_url`:
+
+```bash
+smoke_url "http://myserver.com:5000/"
+smoke_assert_no_response
+```
+
 ### Configuring a base URL
 
 It is possible to setup a base URL that is prepended for each URL that is
@@ -125,13 +154,13 @@ smoke_url_ok "/login"
 
 If the server requires a certain host header to be set, override the host from the URL with
 
-```
+```bash
 smoke_host "example.org"
 ```
 
 To un-override, set it empty:
 
-```
+```bash
 smoke_host ""
 ```
 
@@ -145,6 +174,22 @@ smoke_header "X-Forwarded-Proto: https"
 ```
 
 Existing custom headers can be unset with `remove_smoke_headers`.
+
+### Checking CORS is enabled for a certain Origin
+
+First of all, set the origin header with:
+
+```
+smoke_origin "https://acme.corp"
+```
+
+Then test for CORS headers using:
+
+```
+smoke_url_cors "https://api.com/endpoint"
+    smoke_assert_headers "Access-Control-Allow-Credentials: true"
+    smoke_assert_headers "Access-Control-Allow-Origin: https://acme.corp"
+```
 
 ### CSRF tokens
 
@@ -184,6 +229,33 @@ smoke_response_code    # e.g. 200, 201, 400...
 smoke_response_body    # raw body (html/json/...)
 smoke_response_headers # list of headers
 ```
+
+### Authentication
+
+If the server requires an authentication (for example : HTTP Basic authentication), you must call `smoke_credentials` before calling `smoke_url`.
+If you simply specify the user name, you will be prompted for a password. 
+
+```bash
+smoke_credentials "username" "password"
+smoke_url "http://secured-website.com"
+```
+
+To un-set credentials, call `smoke_no_credentials` :
+
+```bash
+smoke_no_credentials
+```
+
+### Debugging
+
+In order to debug your requests, call `smoke_debug` before calling `smoke_url`:
+
+```bash
+smoke_debug
+smoke_url_ok "http://google.com"
+```
+
+You can turn off debugging by calling `smoke_no_debug`
 
 Advanced example
 ----------------
@@ -229,22 +301,28 @@ smoke_report
 API
 ---
 
-| function                        | description                                          |
-|---------------------------------|------------------------------------------------------|
-|`smoke_assert_body <string>`     | assert that the body contains `<string>`             |
-|`smoke_assert_code <code>`       | assert that there was a `<code>` response code       |
-|`smoke_assert_code_ok`           | assert that there was a `2xx` response code          |
-|`smoke_assert_headers <string>`  | assert that the headers contain `<string>`           |
-|`smoke_csrf <token>`             | set the csrf token to use in POST requests           |
-|`smoke_form <url> <datafile>`    | POST data on url                                     |
-|`smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code |
-|`smoke_report`                   | prints the report and exits                          |
-|`smoke_response_body`            | body of the last response                            |
-|`smoke_response_code`            | code of the last response                            |
-|`smoke_response_headers`         | headers of the last response                         |
-|`smoke_url <url>`                | GET a url                                            |
-|`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code        |
-|`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)    |
-|`smoke_host <host>`              | set the host header to use                           |
-|`smoke_header <header>`          | set additional request header                        |
-|`smoke_tcp_ok <host> <port>`     | open a tcp connection and check for a `Connected` response |
+| function                                | description                                                                                    |
+|-----------------------------------------|------------------------------------------------------------------------------------------------|
+|`smoke_assert_body <string>`             | assert that the body contains `<string>`                                                       |
+|`smoke_assert_code <code>`               | assert that there was a `<code>` response code                                                 |
+|`smoke_assert_code_ok`                   | assert that there was a `2xx` response code                                                    |
+|`smoke_assert_headers <string>`          | assert that the headers contain `<string>`                                                     |
+|`smoke_assert_no_response`               | assert that the server is not responding                                                       |
+|`smoke_credentials <string> [<string>]`  | set the credentials to use : login (and password). If password is not set, it will be prompted |
+|`smoke_csrf <token>`                     | set the csrf token to use in POST requests                                                     |
+|`smoke_form <url> <datafile>`            | POST data on url                                                                               |
+|`smoke_form_ok <url> <datafile>`         | POST data on url and check for a `2xx` response code                                           |
+|`smoke_origin <origin>`                  | set the `Origin` header                                                                        |
+|`smoke_proxy <proxy>`                    | set the HTTP proxy to use [protocol://][user:password@]proxyhost[:port]                        |
+|`smoke_no_proxy [<no-proxy-list>]`       | Comma-separated  list of hosts which do not use a proxy                                        |
+|`smoke_report`                           | prints the report and exits                                                                    |
+|`smoke_response_body`                    | body of the last response                                                                      |
+|`smoke_response_code`                    | code of the last response                                                                      |
+|`smoke_response_headers`                 | headers of the last response                                                                   |
+|`smoke_url <url>`                        | GET a url                                                                                      |
+|`smoke_url_ok <url>`                     | GET a url and check for a `2xx` response code                                                  |
+|`smoke_url_prefix <prefix>`              | set the prefix to use for every url (e.g. domain)                                              |
+|`smoke_host <host>`                      | set the host header to use                                                                     |
+|`smoke_header <header>`                  | set additional request header (in the form `Key: value`)                                       |
+|`remove_smoke_headers`                   | remove all headers                                                                             |
+|`smoke_tcp_ok <host> <port>`             | open a tcp connection and check for a `Connected` response                                     |

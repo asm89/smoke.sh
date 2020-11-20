@@ -1,27 +1,93 @@
 #!/bin/bash
-SMOKE_TMP_DIR=$(mktemp -d)
-
+# Create a temporary directory that works on both Linux and Darwin
+SMOKE_TMP_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 SMOKE_AFTER_RESPONSE=""
 
 SMOKE_CURL_CODE="$SMOKE_TMP_DIR/smoke_curl_code"
 SMOKE_CURL_HEADERS="$SMOKE_TMP_DIR/smoke_curl_headers"
 SMOKE_CURL_BODY="$SMOKE_TMP_DIR/smoke_curl_body"
 SMOKE_CURL_COOKIE_JAR="$SMOKE_TMP_DIR/smoke_curl_cookie_jar"
+SMOKE_CURL_FOLLOW="--location"
+SMOKE_CURL_VERBOSE="--silent"
+SMOKE_CURL_CREDENTIALS=""
 
 SMOKE_CSRF_TOKEN=""
 SMOKE_CSRF_FORM_DATA="$SMOKE_TMP_DIR/smoke_csrf_form_data"
 
+SMOKE_HEADERS=()
+
+SMOKE_ORIGIN=""
+
+SMOKE_NO_PROXY=()
+SMOKE_PROXY=()
+
 SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
 SMOKE_URL_PREFIX=""
-SMOKE_HEADERS=()
 
 ## "Public API"
+
+# Configuration
+smoke_url_prefix() {
+    SMOKE_URL_PREFIX="$1"
+}
 
 smoke_csrf() {
     SMOKE_CSRF_TOKEN="$1"
 }
 
+smoke_debug() {
+    SMOKE_CURL_VERBOSE="--verbose"
+}
+
+smoke_no_debug() {
+    SMOKE_CURL_VERBOSE="--silent"
+}
+
+smoke_follow() {
+    SMOKE_CURL_FOLLOW="--location"
+}
+
+smoke_no_follow() {
+    SMOKE_CURL_FOLLOW=""
+}
+
+smoke_credentials() {
+    USERNAME="$1"
+    PASSWORD="$2"
+
+    if [[ -z "${USERNAME// /}" ]]; then
+        _smoke_print_failure "Username is unset or empty"
+        _smoke_cleanup
+        exit 1
+    fi
+    SMOKE_CURL_CREDENTIALS="-u $USERNAME"
+    if [[ -n "$PASSWORD" ]]; then
+        SMOKE_CURL_CREDENTIALS="$SMOKE_CURL_CREDENTIALS:$PASSWORD"
+    fi
+}
+
+smoke_no_credentials() {
+    USERNAME=""
+    PASSWORD=""
+    SMOKE_CURL_CREDENTIALS=""
+}
+
+smoke_origin() {
+    SMOKE_ORIGIN="$1"
+}
+
+smoke_proxy() {
+    SMOKE_PROXY=('--proxy' "$1")
+}
+
+smoke_no_proxy() {
+    # Default is "*" for all (need to use an array to prevent escape/expansion issues)
+    local noproxy="${1-*}"
+    SMOKE_NO_PROXY=('--noproxy' "$noproxy")
+}
+
+# Request
 smoke_form() {
     URL="$1"
     FORMDATA="$2"
@@ -35,23 +101,13 @@ smoke_form() {
     _curl_post $URL $FORMDATA
 }
 
-smoke_form_ok() {
+smoke_url() {
     URL="$1"
-    FORMDATA="$2"
-
-    smoke_form "$URL" "$FORMDATA"
-    smoke_assert_code_ok
+    _curl_get $URL
 }
 
-smoke_report() {
-    _smoke_cleanup
-    if [[ $SMOKE_TESTS_FAILED -ne 0 ]]; then
-        _smoke_print_report_failure "FAIL ($SMOKE_TESTS_FAILED/$SMOKE_TESTS_RUN)"
-        exit 1
-    fi
-    _smoke_print_report_success "OK ($SMOKE_TESTS_RUN/$SMOKE_TESTS_RUN)"
-}
 
+# Response
 smoke_response_code() {
     cat $SMOKE_CURL_CODE
 }
@@ -64,26 +120,14 @@ smoke_response_headers() {
     cat $SMOKE_CURL_HEADERS
 }
 
-smoke_tcp_ok() {
-    URL="$1 $2"
-    _smoke_print_url "$URL"
-    echo EOF | telnet $URL > $SMOKE_CURL_BODY
-    smoke_assert_body "Connected"
-}
-
-smoke_url() {
-    URL="$1"
-    _curl_get $URL
-}
-
-smoke_url_ok() {
-    URL="$1"
-    smoke_url "$URL"
-    smoke_assert_code_ok
-}
-
-smoke_url_prefix() {
-    SMOKE_URL_PREFIX="$1"
+# Report
+smoke_report() {
+    _smoke_cleanup
+    if [[ $SMOKE_TESTS_FAILED -ne 0 ]]; then
+        _smoke_print_report_failure "FAIL ($SMOKE_TESTS_FAILED/$SMOKE_TESTS_RUN)"
+        exit 1
+    fi
+    _smoke_print_report_success "OK ($SMOKE_TESTS_RUN/$SMOKE_TESTS_RUN)"
 }
 
 smoke_header() {
@@ -98,33 +142,69 @@ remove_smoke_headers() {
     unset SMOKE_HEADERS
 }
 
+smoke_url_cors() {
+    URL="$1"
+    _curl_options $URL
+}
+
+
 ## Assertions
+
+smoke_url_ok() {
+    URL="$1"
+    smoke_url "$URL"
+    smoke_assert_code_ok
+}
+
+smoke_tcp_ok() {
+    URL="$1 $2"
+    _smoke_print_url "TCP" "$URL"
+    echo EOF | telnet $URL > $SMOKE_CURL_BODY
+    smoke_assert_body "Connected"
+}
+
+smoke_form_ok() {
+    URL="$1"
+    FORMDATA="$2"
+
+    smoke_form "$URL" "$FORMDATA"
+    smoke_assert_code_ok
+}
 
 smoke_assert_code() {
     EXPECTED="$1"
-    CODE=$(cat $SMOKE_CURL_CODE)
+    CODE=$(smoke_response_code)
 
-    if [[ $CODE == $1 ]]; then
-        _smoke_success "$1 Response code"
+    if [[ $CODE == $EXPECTED ]]; then
+        _smoke_success "$EXPECTED Response code"
     else
-        _smoke_fail "$1 Response code"
+        _smoke_fail "$EXPECTED Response code (${CODE:-No response})"
     fi
 }
 
 smoke_assert_code_ok() {
-    CODE=$(cat $SMOKE_CURL_CODE)
+    CODE=$(smoke_response_code)
 
     if [[ $CODE == 2* ]]; then
         _smoke_success "2xx Response code"
     else
-        _smoke_fail "2xx Response code"
+        _smoke_fail "2xx Response code (${CODE:-No response})"
+    fi
+}
+
+smoke_assert_no_response() {
+    CODE=$(smoke_response_code)
+    if [[ -z "${CODE// }" ]]; then
+        _smoke_success "No response from server"
+    else
+        _smoke_fail "Got a response from server"
     fi
 }
 
 smoke_assert_body() {
     STRING="$1"
 
-    smoke_response_body | grep --quiet "$STRING"
+    smoke_response_body | grep -q "$STRING"
 
     if [[ $? -eq 0 ]]; then
         _smoke_success "Body contains \"$STRING\""
@@ -136,7 +216,7 @@ smoke_assert_body() {
 smoke_assert_headers() {
     STRING="$1"
 
-    smoke_response_headers | grep --quiet "$STRING"
+    smoke_response_headers | grep -q "$STRING"
 
     if [[ $? -eq 0 ]]; then
         _smoke_success "Headers contain \"$STRING\""
@@ -162,6 +242,12 @@ _smoke_fail() {
     _smoke_print_failure "$REASON"
 }
 
+_smoke_success() {
+    REASON="$1"
+    _smoke_print_success "$REASON"
+    (( ++SMOKE_TESTS_RUN ))
+}
+
 _smoke_prepare_formdata() {
     FORMDATA="$1"
 
@@ -173,16 +259,13 @@ _smoke_prepare_formdata() {
     fi
 }
 
-_smoke_success() {
-    REASON="$1"
-    _smoke_print_success "$REASON"
-    (( ++SMOKE_TESTS_RUN ))
-}
 
 ## Curl helpers
 _curl() {
-  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR --location --dump-header $SMOKE_CURL_HEADERS --silent)
-
+  # Prepare request
+  local opt=(--cookie $SMOKE_CURL_COOKIE_JAR --cookie-jar $SMOKE_CURL_COOKIE_JAR $SMOKE_CURL_FOLLOW --dump-header $SMOKE_CURL_HEADERS $SMOKE_CURL_VERBOSE $SMOKE_CURL_CREDENTIALS "${SMOKE_PROXY[@]}" "${SMOKE_NO_PROXY[@]}")
+  
+  # Add headers
   if (( ${#SMOKE_HEADERS[@]} )); then
     for header in "${SMOKE_HEADERS[@]}"
     do
@@ -190,6 +273,13 @@ _curl() {
     done
   fi
 
+  # Add origin
+  if [[ -n "$SMOKE_ORIGIN" ]]
+  then
+    opt+=(-H "Origin: $SMOKE_ORIGIN")
+  fi
+  
+  # Do CURL
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
 }
 
@@ -197,9 +287,22 @@ _curl_get() {
     URL="$1"
 
     SMOKE_URL="$SMOKE_URL_PREFIX$URL"
-    _smoke_print_url "$SMOKE_URL"
+    _smoke_print_url "GET" "$SMOKE_URL"
 
     _curl $SMOKE_URL
+
+    grep -oE 'HTTP[^ ]+ [0-9]{3}' $SMOKE_CURL_HEADERS | tail -n1 | grep -oE '[0-9]{3}' > $SMOKE_CURL_CODE
+
+    $SMOKE_AFTER_RESPONSE
+}
+
+_curl_options() {
+    URL="$1"
+
+    SMOKE_URL="$SMOKE_URL_PREFIX$URL"
+    _smoke_print_url "OPTIONS" "$SMOKE_URL"
+
+    _curl -X OPTIONS $SMOKE_URL
 
     grep -oE 'HTTP[^ ]+ [0-9]{3}' $SMOKE_CURL_HEADERS | tail -n1 | grep -oE '[0-9]{3}' > $SMOKE_CURL_CODE
 
@@ -212,7 +315,7 @@ _curl_post() {
     FORMDATA_FILE="@"$(_smoke_prepare_formdata $FORMDATA)
 
     SMOKE_URL="$SMOKE_URL_PREFIX$URL"
-    _smoke_print_url "$SMOKE_URL"
+    _smoke_print_url "POST" "$SMOKE_URL"
 
     _curl --data "$FORMDATA_FILE" $SMOKE_URL
 
@@ -257,6 +360,11 @@ _smoke_print_success() {
 }
 
 _smoke_print_url() {
-    TEXT="$1"
-    echo "> $TEXT"
+    VERB="$1"
+    URL="$2"
+    local url_to_print="> ${VERB} ${bold}${URL}${normal}"
+    if [[ -n "${SMOKE_CURL_CREDENTIALS}" ]]; then
+        url_to_print="$url_to_print (authenticate as ${USERNAME})"
+    fi
+    echo "$url_to_print"
 }
