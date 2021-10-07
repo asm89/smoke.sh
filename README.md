@@ -1,5 +1,4 @@
-smoke.sh
-========
+# smoke.sh
 
 A minimal smoke testing framework in Bash.
 
@@ -8,14 +7,14 @@ Features:
 - Response body checks
 - Response code checks
 - Response header checks
-- GET/POST on endpoints
+- GET/POST/OPTIONS on endpoints
+- ORIGIN support for testing CORS responses
 - CSRF tokens
 - Reporting and sane exit codes
 
 ![smoke sh](https://f.cloud.github.com/assets/657357/1238166/6f47f56a-29e4-11e3-9e19-394ca12b5fd0.png)
 
-Example
--------
+## Example
 
 Checking if the Google Search home page works and contains the word "search":
 
@@ -33,7 +32,7 @@ Running:
 
 ```bash
 $ ./smoke-google
-> http://google.com/
+> GET http://google.com/
     [ OK ] 2xx Response code
     [ OK ] Body contains "search"
 OK (2/2)
@@ -41,8 +40,7 @@ OK (2/2)
 
 For a more advanced and complete example, see below.
 
-Setup and usage
---------------
+## Setup and usage
 
 The recommended setup includes copying the `smoke.sh` file in the appropriate
 place and creating a new file in the same directory that you will write your
@@ -88,6 +86,7 @@ smoke_form_ok "http://example.org/login" path/to/postdata
 ```
 
 And the POST data (`path/to/postdata`):
+
 ```
 username=smoke&password=test
 ```
@@ -125,13 +124,13 @@ smoke_url_ok "/login"
 
 If the server requires a certain host header to be set, override the host from the URL with
 
-```
+```bash
 smoke_host "example.org"
 ```
 
 To un-override, set it empty:
 
-```
+```bash
 smoke_host ""
 ```
 
@@ -139,12 +138,28 @@ smoke_host ""
 
 It's possible to set additional request headers, like `X-Forwarded-Proto` for local tests.
 
-```
+```bash
 smoke_header "X-Forwarded-Host: orginal.example.org"
 smoke_header "X-Forwarded-Proto: https"
 ```
 
 Existing custom headers can be unset with `remove_smoke_headers`.
+
+### Checking CORS is enabled for a certain Origin
+
+First of all, set the origin header with:
+
+```bash
+smoke_origin "https://acme.corp"
+```
+
+Then test for CORS headers using:
+
+```bash
+smoke_url_cors "https://api.com/endpoint"
+    smoke_assert_headers "Access-Control-Allow-Credentials: true"
+    smoke_assert_headers "Access-Control-Allow-Origin: https://acme.corp"
+```
 
 ### CSRF tokens
 
@@ -185,8 +200,7 @@ smoke_response_body    # raw body (html/json/...)
 smoke_response_headers # list of headers
 ```
 
-Advanced example
-----------------
+## Advanced example
 
 More advanced example showing all features of `smoke.sh`:
 
@@ -226,25 +240,26 @@ smoke_form_ok "/login" postdata/login
 smoke_report
 ```
 
-API
----
+## API
 
-| function                        | description                                          |
-|---------------------------------|------------------------------------------------------|
-|`smoke_assert_body <string>`     | assert that the body contains `<string>`             |
-|`smoke_assert_code <code>`       | assert that there was a `<code>` response code       |
-|`smoke_assert_code_ok`           | assert that there was a `2xx` response code          |
-|`smoke_assert_headers <string>`  | assert that the headers contain `<string>`           |
-|`smoke_csrf <token>`             | set the csrf token to use in POST requests           |
-|`smoke_form <url> <datafile>`    | POST data on url                                     |
-|`smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code |
-|`smoke_report`                   | prints the report and exits                          |
-|`smoke_response_body`            | body of the last response                            |
-|`smoke_response_code`            | code of the last response                            |
-|`smoke_response_headers`         | headers of the last response                         |
-|`smoke_url <url>`                | GET a url                                            |
-|`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code        |
-|`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)    |
-|`smoke_host <host>`              | set the host header to use                           |
-|`smoke_header <header>`          | set additional request header                        |
-|`smoke_tcp_ok <host> <port>`     | open a tcp connection and check for a `Connected` response |
+| function                         | description                                                |
+| -------------------------------- | ---------------------------------------------------------- |
+| `smoke_assert_body <string>`     | assert that the body contains `<string>`                   |
+| `smoke_assert_code <code>`       | assert that there was a `<code>` response code             |
+| `smoke_assert_code_ok`           | assert that there was a `2xx` response code                |
+| `smoke_assert_headers <string>`  | assert that the headers contain `<string>`                 |
+| `smoke_csrf <token>`             | set the csrf token to use in POST requests                 |
+| `smoke_form <url> <datafile>`    | POST data on url                                           |
+| `smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code       |
+| `smoke_origin <origin>`          | sets the `Origin` header                                   |
+| `smoke_report`                   | prints the report and exits                                |
+| `smoke_response_body`            | body of the last response                                  |
+| `smoke_response_code`            | code of the last response                                  |
+| `smoke_response_headers`         | headers of the last response                               |
+| `smoke_url <url>`                | GET a url                                                  |
+| `smoke_url_cors <url>`           | Check CORS via OPTIONS verb                                |
+| `smoke_url_ok <url>`             | GET a url and check for a `2xx` response code              |
+| `smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)          |
+| `smoke_host <host>`              | set the host header to use                                 |
+| `smoke_header <header>`          | set additional request header                              |
+| `smoke_tcp_ok <host> <port>`     | open a tcp connection and check for a `Connected` response |
