@@ -18,6 +18,11 @@ SMOKE_HEADERS=()
 
 ## "Public API"
 
+smoke_basic_auth() {
+    SMOKE_BASIC_AUTH_USER="$1"
+    SMOKE_BASIC_AUTH_PASSWORD="$2"
+}
+
 smoke_csrf() {
     SMOKE_CSRF_TOKEN="$1"
 }
@@ -189,6 +194,10 @@ _curl() {
         opt+=(-H "$header")
     done
   fi
+  if [[ -n "$SMOKE_BASIC_AUTH_USER" ]]
+  then
+    opt+=(-u "$SMOKE_BASIC_AUTH_USER:$SMOKE_BASIC_AUTH_PASSWORD")
+  fi
 
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
 }
@@ -257,6 +266,13 @@ _smoke_print_success() {
 }
 
 _smoke_print_url() {
-    TEXT="$1"
+    TEXT="$@"
     echo "> $TEXT"
+    
+    if [[ -n "$SMOKE_BASIC_AUTH_USER" ]]
+    then
+        echo "> $${bold}${TEXT}${normal} with BasicAuth ${bold}${SMOKE_BASIC_AUTH_USER}:****${normal}"
+    else
+        echo "> ${bold}${TEXT}${normal}"
+    fi
 }

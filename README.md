@@ -146,6 +146,24 @@ smoke_header "X-Forwarded-Proto: https"
 
 Existing custom headers can be unset with `remove_smoke_headers`.
 
+### Basic Auth
+
+Basic Auth credentials can be passed using: `smoke_basic_auth <user> <pass>`
+To unset credentials pass no arguments or empty ones.
+
+Full usage example:
+
+```bash
+smoke_url "${API}/health"
+    smoke_assert_code 401
+
+smoke_basic_auth user1 pass1   # set credentials
+smoke_url_ok "${API}/health"   # call with credentials
+    smoke_assert_code 200
+	
+smoke_basic_auth   # unset
+```
+
 ### CSRF tokens
 
 Web applications that are protected with CSRF tokens will need to extract a
@@ -248,3 +266,4 @@ API
 |`smoke_host <host>`              | set the host header to use                           |
 |`smoke_header <header>`          | set additional request header                        |
 |`smoke_tcp_ok <host> <port>`     | open a tcp connection and check for a `Connected` response |
+|`smoke_basic_auth <user> <pass>` | set Basic Auth credentials                                 |
