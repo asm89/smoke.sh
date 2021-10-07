@@ -22,6 +22,10 @@ smoke_csrf() {
     SMOKE_CSRF_TOKEN="$1"
 }
 
+smoke_allow_insecure() {
+    SMOKE_ALLOW_INSECURE="true"
+}
+
 smoke_form() {
     URL="$1"
     FORMDATA="$2"
@@ -188,6 +192,10 @@ _curl() {
     do
         opt+=(-H "$header")
     done
+  fi
+  if [[ -n "$SMOKE_ALLOW_INSECURE" ]]
+  then
+    opt+=(-k)
   fi
 
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
