@@ -185,6 +185,15 @@ smoke_response_body    # raw body (html/json/...)
 smoke_response_headers # list of headers
 ```
 
+### Debug mode
+
+When debugging failed tests is important to be able to see the complete curl command been sent.
+To enable this kind of debug as a global setting, simply add this line before a test:
+
+```
+smoke_debug
+```
+
 Advanced example
 ----------------
 
@@ -236,6 +245,7 @@ API
 |`smoke_assert_code_ok`           | assert that there was a `2xx` response code          |
 |`smoke_assert_headers <string>`  | assert that the headers contain `<string>`           |
 |`smoke_csrf <token>`             | set the csrf token to use in POST requests           |
+|`smoke_debug`                    | enable debug                                               |
 |`smoke_form <url> <datafile>`    | POST data on url                                     |
 |`smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code |
 |`smoke_report`                   | prints the report and exits                          |

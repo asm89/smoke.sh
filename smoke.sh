@@ -22,6 +22,10 @@ smoke_csrf() {
     SMOKE_CSRF_TOKEN="$1"
 }
 
+smoke_debug() {
+    SMOKE_DEBUG="true"
+}
+
 smoke_form() {
     URL="$1"
     FORMDATA="$2"
@@ -191,6 +195,8 @@ _curl() {
   fi
 
   curl "${opt[@]}" "$@" > $SMOKE_CURL_BODY
+
+  _smoke_print_debug 'curl' "${opt[@]}" "$@"
 }
 
 _curl_get() {
@@ -259,4 +265,11 @@ _smoke_print_success() {
 _smoke_print_url() {
     TEXT="$1"
     echo "> $TEXT"
+}
+
+_smoke_print_debug() {
+  if [[ -n "$SMOKE_DEBUG" ]]
+  then
+    echo "DEBUG:: $@"
+  fi
 }
