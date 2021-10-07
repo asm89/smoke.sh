@@ -148,7 +148,7 @@ Existing custom headers can be unset with `remove_smoke_headers`.
 
 ### Basic Auth
 
-Basic Auth credentials can be passed using: `smoke_basic_auth [user] [pass]`
+Basic Auth credentials can be passed using: `smoke_basic_auth <user> <pass>`
 To unset credentials pass no arguments or empty ones.
 
 Full usage example:
