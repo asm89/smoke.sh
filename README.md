@@ -146,6 +146,16 @@ smoke_header "X-Forwarded-Proto: https"
 
 Existing custom headers can be unset with `remove_smoke_headers`.
 
+### Insecure SSL/TLS
+
+To allow connections to insecure SSL/TLS servers add:
+
+```bash
+smoke_allow_insecure
+```
+
+This setting will add the curl option `-k` in all request and will skip certificate errors like expired certificate or sef-signed ones.
+
 ### CSRF tokens
 
 Web applications that are protected with CSRF tokens will need to extract a
@@ -229,22 +239,23 @@ smoke_report
 API
 ---
 
-| function                        | description                                          |
-|---------------------------------|------------------------------------------------------|
-|`smoke_assert_body <string>`     | assert that the body contains `<string>`             |
-|`smoke_assert_code <code>`       | assert that there was a `<code>` response code       |
-|`smoke_assert_code_ok`           | assert that there was a `2xx` response code          |
-|`smoke_assert_headers <string>`  | assert that the headers contain `<string>`           |
-|`smoke_csrf <token>`             | set the csrf token to use in POST requests           |
-|`smoke_form <url> <datafile>`    | POST data on url                                     |
-|`smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code |
-|`smoke_report`                   | prints the report and exits                          |
-|`smoke_response_body`            | body of the last response                            |
-|`smoke_response_code`            | code of the last response                            |
-|`smoke_response_headers`         | headers of the last response                         |
-|`smoke_url <url>`                | GET a url                                            |
-|`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code        |
-|`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)    |
-|`smoke_host <host>`              | set the host header to use                           |
-|`smoke_header <header>`          | set additional request header                        |
+| function                        | description                                                |
+|---------------------------------|------------------------------------------------------------|
+|`smoke_assert_body <string>`     | assert that the body contains `<string>`                   |
+|`smoke_assert_code <code>`       | assert that there was a `<code>` response code             |
+|`smoke_assert_code_ok`           | assert that there was a `2xx` response code                |
+|`smoke_assert_headers <string>`  | assert that the headers contain `<string>`                 |
+|`smoke_csrf <token>`             | set the csrf token to use in POST requests                 |
+|`smoke_form <url> <datafile>`    | POST data on url                                           |
+|`smoke_form_ok <url> <datafile>` | POST data on url and check for a `2xx` response code       |
+|`smoke_report`                   | prints the report and exits                                |
+|`smoke_response_body`            | body of the last response                                  |
+|`smoke_response_code`            | code of the last response                                  |
+|`smoke_response_headers`         | headers of the last response                               |
+|`smoke_url <url>`                | GET a url                                                  |
+|`smoke_url_ok <url>`             | GET a url and check for a `2xx` response code              |
+|`smoke_url_prefix <prefix>`      | set the prefix to use for every url (e.g. domain)          |
+|`smoke_host <host>`              | set the host header to use                                 |
+|`smoke_header <header>`          | set additional request header                              |
 |`smoke_tcp_ok <host> <port>`     | open a tcp connection and check for a `Connected` response |
+|`smoke_allow_insecure`           | allow connections to insecure SSL/TLS servers              |
