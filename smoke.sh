@@ -136,7 +136,7 @@ smoke_assert_body() {
 smoke_assert_headers() {
     STRING="$1"
 
-    smoke_response_headers | grep --quiet "$STRING"
+    smoke_response_headers | grep --quiet -i "$STRING"
 
     if [[ $? -eq 0 ]]; then
         _smoke_success "Headers contain \"$STRING\""
