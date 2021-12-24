@@ -67,8 +67,8 @@ smoke_response_headers() {
 smoke_tcp_ok() {
     URL="$1 $2"
     _smoke_print_url "$URL"
-    echo EOF | telnet $URL > $SMOKE_CURL_BODY
-    smoke_assert_body "Connected"
+    echo EOF | nc -zvw 1 $URL > $SMOKE_CURL_BODY 2>&1
+    smoke_assert_body "succeeded"
 }
 
 smoke_url() {
