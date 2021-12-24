@@ -1,4 +1,6 @@
 #!/bin/bash
+#https://github.com/asm89/smoke.sh
+#https://git.doge.uno/cloned/smoke.sh
 SMOKE_TMP_DIR=$(mktemp -d)
 
 SMOKE_AFTER_RESPONSE=""
@@ -13,6 +15,7 @@ SMOKE_CSRF_FORM_DATA="$SMOKE_TMP_DIR/smoke_csrf_form_data"
 
 SMOKE_TESTS_FAILED=0
 SMOKE_TESTS_RUN=0
+SMOKE_TCP_TIMEOUT=1
 SMOKE_URL_PREFIX=""
 SMOKE_HEADERS=()
 
@@ -64,10 +67,17 @@ smoke_response_headers() {
     cat $SMOKE_CURL_HEADERS
 }
 
+smoke_tcp_ok_old() {
+    URL="$1 $2"
+    _smoke_print_url "$URL"
+    echo EOF | telnet $URL > $SMOKE_CURL_BODY
+    smoke_assert_body "Connected"
+}
+
 smoke_tcp_ok() {
     URL="$1 $2"
     _smoke_print_url "$URL"
-    echo EOF | nc -zvw 1 $URL > $SMOKE_CURL_BODY 2>&1
+    echo EOF | nc -zvw $SMOKE_TCP_TIMEOUT $URL > $SMOKE_CURL_BODY 2>&1
     smoke_assert_body "succeeded"
 }
 
@@ -117,12 +127,14 @@ smoke_assert_code_ok() {
     if [[ $CODE == 2* ]]; then
         _smoke_success "2xx Response code"
     else
-        _smoke_fail "2xx Response code"
+        _smoke_fail "${CODE} - Response code"
     fi
 }
 
 smoke_assert_body() {
     STRING="$1"
+
+    echo "smoke_response_body WAS: ${smoke_response_body}"
 
     smoke_response_body | grep --quiet "$STRING"
 
@@ -152,7 +164,8 @@ _smoke_after_response() {
 }
 
 _smoke_cleanup() {
-    rm -rf $SMOKE_TMP_DIR
+    #rm -rf $SMOKE_TMP_DIR
+    echo "hi"
 }
 
 _smoke_fail() {
@@ -259,4 +272,12 @@ _smoke_print_success() {
 _smoke_print_url() {
     TEXT="$1"
     echo "> $TEXT"
+}
+
+_extract_csrf() {
+    CSRF=$(smoke_response_body | grep OUR_CSRF_TOKEN | grep -oE "[a-f0-9]{40}")
+
+    if [[ $CSRF != "" ]]; then
+        smoke_csrf "$CSRF" # set the new CSRF token
+    fi
 }
