@@ -248,3 +248,4 @@ API
 |`smoke_host <host>`              | set the host header to use                           |
 |`smoke_header <header>`          | set additional request header                        |
 |`smoke_tcp_ok <host> <port>`     | open a tcp connection and check for a `Connected` response |
+# test-smoke
